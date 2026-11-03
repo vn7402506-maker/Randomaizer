@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RANDOMIZER 3D — Pink Clouds</title>
+<style>
+:root{--pink:#ff77b7;--pink2:#ffc6e2;--deep:#bd4d88;--white:#fff8fd}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#79365c;background:linear-gradient(145deg,#ffe4f3,#f7c9e8 45%,#e7d9ff);overflow-x:hidden}
+.clouds{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:-1}
+.cloud{position:absolute;width:260px;height:100px;border-radius:100px;background:rgba(255,255,255,.7);filter:blur(1px);box-shadow:0 20px 55px rgba(255,255,255,.5)}
+.cloud:before,.cloud:after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cloud:before{width:130px;height:130px;left:35px;top:-55px}.cloud:after{width:160px;height:150px;right:25px;top:-70px}
+.c1{top:10%;left:-80px;animation:drift 26s linear infinite}.c2{top:56%;right:-100px;animation:drift2 32s linear infinite}.c3{top:78%;left:20%;transform:scale(.7);animation:drift 35s linear infinite}
+@keyframes drift{to{transform:translateX(110vw)}}@keyframes drift2{to{transform:translateX(-110vw)}}
+main{width:min(1100px,94%);margin:0 auto;padding:30px 0 24px}
+header{text-align:center;margin-bottom:24px}
+header .eyebrow{letter-spacing:5px;font-size:12px;font-weight:800;color:#c45e98}
+h1{font-size:clamp(30px,6vw,56px);margin:7px 0;color:#fff;text-shadow:0 4px 0 #f5a9d2,0 10px 30px #d66ba8;letter-spacing:2px}
+header p{margin:0;color:#9c4b7b}
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+.panel{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);border-radius:28px;padding:22px;box-shadow:0 18px 50px rgba(177,83,142,.15);backdrop-filter:blur(12px)}
+.panel h2{font-size:18px;margin:0 0 14px;color:#a4477b}
+textarea,input,select{width:100%;border:1px solid #f3b6d8;background:#fff8fd;color:#7e3b62;border-radius:15px;padding:12px 14px;font:inherit;outline:none}
+textarea{height:190px;resize:vertical}
+textarea:focus,input:focus,select:focus{box-shadow:0 0 0 3px #ffd5eb}
+.row{display:flex;gap:12px;align-items:center;margin:13px 0}
+.row label{font-weight:700;white-space:nowrap}
+button{border:0;border-radius:16px;padding:13px 18px;font:inherit;font-weight:800;cursor:pointer;color:white;background:linear-gradient(135deg,#ff91c7,#d65c9d);box-shadow:0 8px 18px #d66ba844;transition:.2s}
+button:hover{transform:translateY(-2px);filter:brightness(1.04)}button:active{transform:scale(.98)}
+button.secondary{background:linear-gradient(135deg,#d8b4f5,#a779d4)}button.light{background:#fff;color:#b34d87;border:1px solid #f5b9dc;box-shadow:none}
+.wheel-wrap{display:flex;justify-content:center;align-items:center;padding:10px 0 18px;position:relative}
+.pointer{position:absolute;top:2px;z-index:2;width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:32px solid #b64a85;filter:drop-shadow(0 3px 3px #8a3b66)}
+canvas{width:min(100%,400px);height:auto;aspect-ratio:1;border-radius:50%;filter:drop-shadow(0 15px 20px #cc6ba855)}
+.spin{width:100%;font-size:18px;letter-spacing:1px}
+.stats{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;color:#a34d7c;margin-top:10px}
+.winner-box{min-height:125px;background:linear-gradient(135deg,#fff3fb,#ffe1f2);border:1px dashed #e9a2cc;border-radius:20px;padding:14px;margin-top:14px}
+.winner-box h3{margin:0 0 8px;font-size:14px;color:#b24c86}
+#winners{margin:0;padding-left:22px;font-weight:800;line-height:1.8}
+.note{font-size:12px;opacity:.8;margin:10px 0 0}
+footer{text-align:center;padding:24px 8px 10px;font-size:13px;color:#a34d7c;font-weight:700;letter-spacing:.5px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.panel{padding:17px}textarea{height:150px}.row{flex-wrap:wrap}.row label{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="clouds"><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
+<main>
+<header><div class="eyebrow">PINK CLOUDS • 3D EDITION</div><h1>🎀 RANDOMIZER 🎀</h1><p>Пусть облака выберут победителей!</p></header>
+<div class="layout">
+<section class="panel">
+<h2>☁️ Участники розыгрыша</h2>
+<textarea id="names" placeholder="Введите имена — каждое с новой строки&#10;Например:&#10;Алина&#10;Маша&#10;София"></textarea>
+<div class="row"><button id="load">Добавить участников</button><button class="light" id="clear">Очистить</button></div>
+<div class="stats"><span id="count">Участников: 0 / 200</span><span id="remaining">Осталось: 0</span></div>
+<p class="note">Можно вставить до 200 имён. Пустые строки игнорируются.</p>
+</section>
+<section class="panel">
+<h2>🎡 Колесо Фортуны</h2>
+<div class="row"><label for="winnerCount">Количество победителей:</label><select id="winnerCount"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+<div class="wheel-wrap"><div class="pointer"></div><canvas id="wheel" width="700" height="700"></canvas></div>
+<button class="spin" id="spin">✨ КРУТИТЬ КОЛЕСО ✨</button>
+<div class="winner-box"><h3>🏆 СПИСОК ПОБЕДИТЕЛЕЙ</h3><ol id="winners"><li>Победители появятся здесь</li></ol></div>
+<div class="row"><button class="secondary" id="reset">Начать заново</button></div>
+</section>
+</div>
+<footer>Сайт создан @snejoksnejok_it</footer>
+</main>
+<script>
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+const namesEl=document.getElementById('names'), countEl=document.getElementById('count'), remEl=document.getElementById('remaining');
+let participants=[], winners=[], angle=0, spinning=false;
+const colors=['#ff8fc8','#ffd0e9','#f6a9d5','#fff0fa','#eaa0d1','#ffc0df','#dca9f5','#ffe5f3'];
+function draw(){
+ const n=Math.max(participants.length,1),cx=350,cy=350,r=325;ctx.clearRect(0,0,700,700);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+ for(let i=0;i<n;i++){let a=i*2*Math.PI/n,b=(i+1)*2*Math.PI/n;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,a,b);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=4;ctx.stroke();
+ if(n<=36){ctx.save();ctx.rotate((a+b)/2);ctx.textAlign='right';ctx.fillStyle='#84375f';ctx.font='bold '+(n>20?16:20)+'px system-ui';let label=participants[i]||'Добавьте имена';ctx.fillText(label.length>18?label.slice(0,17)+'…':label,r-22,7);ctx.restore();}
+ }
+ ctx.restore();
+ ctx.beginPath();ctx.arc(cx,cy,58,0,Math.PI*2);ctx.fillStyle='#fff8fd';ctx.fill();ctx.strokeStyle='#f5a4d1';ctx.lineWidth=9;ctx.stroke();
+ ctx.fillStyle='#c45391';ctx.textAlign='center';ctx.font='bold 24px system-ui';ctx.fillText('♡',cx,cy+9);
+}
+function updateStats(){countEl.textContent=`Участников: ${participants.length} / 200`;remEl.textContent=`Осталось: ${participants.length}`;}
+function load(){let list=namesEl.value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(list.length>200){alert('Максимум — 200 участников.');return;}participants=list;winners=[];document.getElementById('winners').innerHTML='<li>Победители появятся здесь</li>';updateStats();draw();}
+document.getElementById('load').onclick=load;
+document.getElementById('clear').onclick=()=>{namesEl.value='';participants=[];winners=[];updateStats();document.getElementById('winners').innerHTML='<li>Победители появятся здесь</li>';draw();};
+document.getElementById('reset').onclick=()=>{winners=[];load();};
+function ease(t){return 1-Math.pow(1-t,4)}
+document.getElementById('spin').onclick=()=>{
+ if(spinning)return;
+ if(!participants.length){alert('Сначала добавьте участников!');return;}
+ const requested=+document.getElementById('winnerCount').value;
+ if(requested>participants.length){alert('Победителей не может быть больше, чем участников.');return;}
+ spinning=true;const btn=document.getElementById('spin');btn.disabled=true;
+ let remainingWinners=requested;
+ function next(){
+  if(remainingWinners<=0){spinning=false;btn.disabled=false;updateStats();draw();return;}
+  const chosenIndex=Math.floor(Math.random()*participants.length);
+  const chosen=participants[chosenIndex];
+  const target=angle+(Math.PI*2*5)+(Math.PI*2*(Math.random()));
+  const start=angle, duration=3600, began=performance.now();
+  function frame(now){let t=Math.min((now-began)/duration,1);angle=start+(target-start)*ease(t);draw();
+   if(t<1)requestAnimationFrame(frame);else{
+    winners.push(chosen);participants.splice(chosenIndex,1);
+    const list=document.getElementById('winners');list.innerHTML='';
+    winners.forEach(name=>{let li=document.createElement('li');li.textContent=name;list.appendChild(li);});
+    updateStats();remainingWinners--;setTimeout(next,650);
+   }}
+  requestAnimationFrame(frame);
+ }
+ next();
+};
+draw();updateStats();
+</script>
+</body>
+</html>
